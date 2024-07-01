@@ -1,20 +1,42 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+// App.js
+import React from 'react';
+import { StatusBar } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+import VideoFeed from './components/VideoFeed';
+import RestaurantDashboard from './components/RestaurantDashboard';
+import RestaurantProfile from './components/RestaurantProfile';
 
-export default function App() {
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+function HomeTabs() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: { backgroundColor: 'black' },
+        tabBarActiveTintColor: 'white',
+        tabBarInactiveTintColor: 'gray',
+      }}
+    >
+      <Tab.Screen name="NearbyVideos" component={VideoFeed} />
+      <Tab.Screen name="RestaurantDashboard" component={RestaurantDashboard} />
+    </Tab.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  return (
+    <>
+      <StatusBar barStyle="light-content" />
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Home" component={HomeTabs} />
+          <Stack.Screen name="RestaurantProfile" component={RestaurantProfile} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </>
+  );
+}
