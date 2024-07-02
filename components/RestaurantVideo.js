@@ -1,6 +1,5 @@
-// components/RestaurantVideo.js
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableWithoutFeedback, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableWithoutFeedback, TouchableOpacity, Image } from 'react-native';
 import { Video } from 'expo-av';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -54,17 +53,16 @@ export default function RestaurantVideo({ video, isInProfile = false }) {
           style={styles.video}
         />
         <View style={[styles.infoContainer, { bottom: isInProfile ? 20 : insets.bottom + 20 }]}>
-          <Text style={styles.restaurantName}>{video.restaurantName}</Text>
+          <View style={styles.profileInfo}>
+            <Image source={{ uri: video.profileIcon }} style={styles.profileIcon} />
+            <Text style={styles.restaurantName}>{video.restaurantName}</Text>
+          </View>
           <Text style={styles.description}>{video.description}</Text>
         </View>
         {!isInProfile && (
-          <View style={styles.interactionContainer}>
-            <TouchableOpacity style={styles.profileIcon} onPress={goToRestaurantProfile}>
-              <Ionicons name="person-circle-outline" size={50} color="white" />
-              <Text style={styles.profileText}>Profile</Text>
-            </TouchableOpacity>
-            {/* Add other interaction buttons here (like, comment, share) */}
-          </View>
+          <TouchableOpacity style={styles.profileButton} onPress={goToRestaurantProfile}>
+            <Ionicons name="person-circle-outline" size={40} color="white" />
+          </TouchableOpacity>
         )}
       </View>
     </TouchableWithoutFeedback>
@@ -77,7 +75,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   profileContainer: {
-    height: height - 100, // Adjust this value based on your layout
+    height: height - 100,
   },
   video: {
     width: '100%',
@@ -88,29 +86,29 @@ const styles = StyleSheet.create({
     left: 10,
     right: 10,
   },
+  profileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  profileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
   restaurantName: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 5,
   },
   description: {
     color: 'white',
     fontSize: 14,
   },
-  interactionContainer: {
+  profileButton: {
     position: 'absolute',
     right: 10,
-    bottom: 300, // Adjust this value to move the container up or down
-    alignItems: 'center',
-  },
-  profileIcon: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  profileText: {
-    color: 'white',
-    fontSize: 12,
-    marginTop: 5,
+    bottom: 100,
   },
 });

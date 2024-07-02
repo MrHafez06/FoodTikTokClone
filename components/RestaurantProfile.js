@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, FlatList, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, Image, FlatList, StyleSheet, SafeAreaView, Dimensions, TouchableOpacity, Linking } from 'react-native';
 import { fetchRestaurantDetails } from '../services/api';
 import RestaurantVideo from './RestaurantVideo';
 
@@ -9,6 +9,7 @@ export default function RestaurantProfile({ route }) {
   const { restaurantId } = route.params;
   const [restaurant, setRestaurant] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
   useEffect(() => {
     loadRestaurantDetails();
@@ -25,6 +26,12 @@ export default function RestaurantProfile({ route }) {
     }
   };
 
+  const renderVideoThumbnail = ({ item }) => (
+    <TouchableOpacity onPress={() => setSelectedVideo(item)} style={styles.thumbnail}>
+      <Image source={{ uri: item.thumbnailUrl || item.url }} style={styles.thumbnailImage} />
+    </TouchableOpacity>
+  );
+
   if (isLoading) {
     return <View style={styles.container}><Text>Loading...</Text></View>;
   }
@@ -39,22 +46,28 @@ export default function RestaurantProfile({ route }) {
         <Image source={{ uri: restaurant.profileIcon }} style={styles.profileIcon} />
         <Text style={styles.title}>{restaurant.name}</Text>
       </View>
-      <FlatList
-        data={restaurant.videos}
-        renderItem={({ item }) => (
-          <View style={styles.videoContainer}>
-            <RestaurantVideo
-              video={{...item, restaurantName: restaurant.name, restaurantId: restaurant._id}}
-              isInProfile={true}
-            />
-          </View>
-        )}
-        keyExtractor={(item) => item._id}
-        pagingEnabled
-        snapToInterval={height - 100}
-        decelerationRate="fast"
-        showsVerticalScrollIndicator={false}
-      />
+      <TouchableOpacity
+        style={styles.orderButton}
+        onPress={() => Linking.openURL('https://example.com/order')} // Replace with actual order URL
+      >
+        <Text style={styles.orderButtonText}>Order Now</Text>
+      </TouchableOpacity>
+      {selectedVideo ? (
+        <View style={styles.videoContainer}>
+          <RestaurantVideo video={selectedVideo} isInProfile={true} />
+          <TouchableOpacity onPress={() => setSelectedVideo(null)} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={restaurant.videos}
+          renderItem={renderVideoThumbnail}
+          keyExtractor={(item) => item._id}
+          numColumns={3}
+          contentContainerStyle={styles.videoGrid}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -70,18 +83,54 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   profileIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 10,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
   },
+  orderButton: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    margin: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  orderButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  videoGrid: {
+    padding: 5,
+  },
+  thumbnail: {
+    width: (width - 30) / 3,
+    height: (width - 30) / 3,
+    margin: 5,
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 5,
+  },
   videoContainer: {
-    height: height - 100,
-    width: width,
+    flex: 1,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
