@@ -28,7 +28,7 @@ export default function RestaurantProfile({ route }) {
 
   const renderVideoThumbnail = ({ item }) => (
     <TouchableOpacity onPress={() => setSelectedVideo(item)} style={styles.thumbnail}>
-      <Image source={{ uri: item.thumbnailUrl || item.url }} style={styles.thumbnailImage} />
+      <Image source={{ uri: item.thumbnailUrl }} style={styles.thumbnailImage} />
     </TouchableOpacity>
   );
 
