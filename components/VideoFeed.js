@@ -1,26 +1,38 @@
-// components/VideoFeed.js
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, Dimensions, StyleSheet } from 'react-native';
+import { View, FlatList, Dimensions, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RestaurantVideo from './RestaurantVideo';
-import { restaurants } from '../data/mockData';
+import { fetchRestaurants } from '../services/api';
 
 const { height, width } = Dimensions.get('window');
 
 export default function VideoFeed() {
   const [allVideos, setAllVideos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    const videos = restaurants.flatMap(restaurant => 
-      restaurant.videos.map(video => ({
-        ...video,
-        restaurantName: restaurant.name,
-        restaurantId: restaurant.id
-      }))
-    );
-    setAllVideos(videos);
+    loadVideos();
   }, []);
+
+  const loadVideos = async () => {
+    try {
+      const restaurants = await fetchRestaurants();
+      const videos = restaurants.flatMap(restaurant =>
+        restaurant.videos.map(video => ({
+          ...video,
+          restaurantName: restaurant.name,
+          restaurantId: restaurant._id,
+          profileIcon: restaurant.profileIcon
+        }))
+      );
+      setAllVideos(videos);
+    } catch (error) {
+      console.error('Error loading videos:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const renderItem = ({ item }) => (
     <View style={[styles.videoContainer, { height: height - insets.bottom }]}>
@@ -28,12 +40,16 @@ export default function VideoFeed() {
     </View>
   );
 
+  if (isLoading) {
+    return <View style={styles.container}><Text>Loading...</Text></View>;
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
         data={allVideos}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         pagingEnabled
         snapToInterval={height - insets.bottom}
         snapToAlignment="start"

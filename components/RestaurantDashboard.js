@@ -1,27 +1,57 @@
-// components/RestaurantDashboard.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, FlatList, StyleSheet, SafeAreaView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { restaurants } from '../data/mockData';
+import { fetchRestaurants } from '../services/api';
+import axios from 'axios';
 
 export default function RestaurantDashboard() {
+  const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [newVideo, setNewVideo] = useState({ url: '', description: '' });
+  const [isLoading, setIsLoading] = useState(true);
   const insets = useSafeAreaInsets();
 
-  const addVideo = () => {
-    if (selectedRestaurant && newVideo.url && newVideo.description) {
-      // Add video logic here
-      setNewVideo({ url: '', description: '' });
+  useEffect(() => {
+    loadRestaurants();
+  }, []);
+
+  const loadRestaurants = async () => {
+    try {
+      const data = await fetchRestaurants();
+      setRestaurants(data);
+    } catch (error) {
+      console.error('Error loading restaurants:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const addVideo = async () => {
+    if (selectedRestaurant && newVideo.url && newVideo.description) {
+      try {
+        const response = await axios.post(`https://tiktokfoodapp.herokuapp.com/api/restaurants/${selectedRestaurant._id}/addVideo`, {
+          url: newVideo.url,
+          description: newVideo.description
+        });
+        console.log('Video added:', response.data);
+        setNewVideo({ url: '', description: '' });
+        loadRestaurants(); // Reload the restaurants to get the updated data
+      } catch (error) {
+        console.error('Error adding video:', error);
+      }
+    }
+  };
+
+  if (isLoading) {
+    return <View style={styles.container}><Text>Loading...</Text></View>;
+  }
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
       <Text style={styles.title}>Restaurant Dashboard</Text>
       <FlatList
         data={restaurants}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <Button
             title={item.name}
