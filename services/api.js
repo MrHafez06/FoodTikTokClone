@@ -1,13 +1,13 @@
 import axios from "axios";
 
-const API_URL = "https://tiktokfoodapp.herokuapp.com/api"; // Use this for production
+const API_URL = "https://tiktokfoodapp-a36506d95ff8.herokuapp.com/api/restaurants"; // Use this for production
 
 console.log("Using API URL:", API_URL);
 
 export async function fetchRestaurants() {
-  console.log("Fetching restaurants from:", `${API_URL}/restaurants`);
+  console.log("Fetching restaurants from:", `${API_URL}`);
   try {
-    const response = await axios.get(`${API_URL}/restaurants`);
+    const response = await axios.get(`${API_URL}`);
     console.log("Restaurants response:", response.data);
     return response.data;
   } catch (error) {
@@ -25,7 +25,7 @@ export async function fetchRestaurantDetails(id) {
     `${API_URL}/restaurants/${id}`
   );
   try {
-    const response = await axios.get(`${API_URL}/restaurants/${id}`);
+    const response = await axios.get(`${API_URL}/${id}`);
     console.log("Restaurant details response:", response.data);
     return response.data;
   } catch (error) {

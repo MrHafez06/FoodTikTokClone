@@ -1,17 +1,28 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableWithoutFeedback, TouchableOpacity, Image } from 'react-native';
 import { Video } from 'expo-av';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 
-export default function RestaurantVideo({ video, isInProfile = false }) {
-  const [isPlaying, setIsPlaying] = useState(true);
+export default function RestaurantVideo({ video, isInProfile = false, isPlaying }) {
   const videoRef = useRef(null);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+
+  useEffect(() => {
+    const playVideo = async () => {
+      if (videoRef.current) {
+        if (isPlaying) {
+          await videoRef.current.playAsync();
+        } else {
+          await videoRef.current.stopAsync();
+        }
+      }
+    };
+    playVideo();
+  }, [isPlaying]);
 
   useEffect(() => {
     return () => {
@@ -23,12 +34,12 @@ export default function RestaurantVideo({ video, isInProfile = false }) {
 
   const togglePlayPause = async () => {
     if (videoRef.current) {
-      if (isPlaying) {
+      const status = await videoRef.current.getStatusAsync();
+      if (status.isPlaying) {
         await videoRef.current.pauseAsync();
       } else {
         await videoRef.current.playAsync();
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -53,17 +64,12 @@ export default function RestaurantVideo({ video, isInProfile = false }) {
           style={styles.video}
         />
         <View style={[styles.infoContainer, { bottom: isInProfile ? 20 : insets.bottom + 20 }]}>
-          <View style={styles.profileInfo}>
+          <TouchableOpacity onPress={goToRestaurantProfile} style={styles.profileIconContainer}>
             <Image source={{ uri: video.profileIcon }} style={styles.profileIcon} />
-            <Text style={styles.restaurantName}>{video.restaurantName}</Text>
-          </View>
+          </TouchableOpacity>
+          <Text style={styles.restaurantName}>{video.restaurantName}</Text>
           <Text style={styles.description}>{video.description}</Text>
         </View>
-        {!isInProfile && (
-          <TouchableOpacity style={styles.profileButton} onPress={goToRestaurantProfile}>
-            <Ionicons name="person-circle-outline" size={40} color="white" />
-          </TouchableOpacity>
-        )}
       </View>
     </TouchableWithoutFeedback>
   );
@@ -85,30 +91,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 10,
     right: 10,
+    bottom: 20,
+    alignItems: 'flex-start',
   },
-  profileInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  profileIconContainer: {
     marginBottom: 10,
   },
   profileIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: 10,
   },
   restaurantName: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+    marginBottom: 5,
   },
   description: {
     color: 'white',
     fontSize: 14,
-  },
-  profileButton: {
-    position: 'absolute',
-    right: 10,
-    bottom: 100,
   },
 });

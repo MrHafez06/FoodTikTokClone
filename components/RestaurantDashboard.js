@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchRestaurants } from '../services/api';
 import axios from 'axios';
 
+const API_URL = "https://tiktokfoodapp-a36506d95ff8.herokuapp.com/api/restaurants";
+
 export default function RestaurantDashboard() {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
@@ -29,7 +31,7 @@ export default function RestaurantDashboard() {
   const addVideo = async () => {
     if (selectedRestaurant && newVideo.url && newVideo.description) {
       try {
-        const response = await axios.post(`https://tiktokfoodapp.herokuapp.com/api/restaurants/${selectedRestaurant._id}/addVideo`, {
+        const response = await axios.post(`${API_URL}/${selectedRestaurant._id}/addVideo`, {
           url: newVideo.url,
           description: newVideo.description
         });
