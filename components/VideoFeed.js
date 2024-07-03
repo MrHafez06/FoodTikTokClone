@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, FlatList, Dimensions, StyleSheet, Text } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import RestaurantVideo from "./RestaurantVideo";
 import { fetchRestaurants } from "../services/api";
@@ -11,10 +12,23 @@ export default function VideoFeed() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentlyPlayingIndex, setCurrentlyPlayingIndex] = useState(0);
   const insets = useSafeAreaInsets();
+  const flatListRef = useRef(null);
 
   useEffect(() => {
     loadVideos();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setCurrentlyPlayingIndex(0);
+      return () => {
+        setCurrentlyPlayingIndex(-1);
+        if (flatListRef.current) {
+          flatListRef.current.scrollToOffset({ offset: 0, animated: false });
+        }
+      };
+    }, [])
+  );
 
   const loadVideos = async () => {
     try {
@@ -63,6 +77,7 @@ export default function VideoFeed() {
   return (
     <View style={styles.container}>
       <FlatList
+        ref={flatListRef}
         data={allVideos}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
