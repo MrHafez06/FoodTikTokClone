@@ -14,6 +14,9 @@ export default function VideoFeed() {
   const insets = useSafeAreaInsets();
   const flatListRef = useRef(null);
 
+  // Estimate the height of the bottom tab bar
+  const tabBarHeight = 49; // This is an estimate, adjust if necessary
+
   useEffect(() => {
     loadVideos();
   }, []);
@@ -45,7 +48,7 @@ export default function VideoFeed() {
   };
 
   const renderItem = ({ item, index }) => (
-    <View style={[tw`w-full`, { height: height - insets.top - insets.bottom }]}>
+    <View style={[tw`w-full`, { height: height - tabBarHeight }]}>
       <RestaurantVideo
         video={item}
         isPlaying={index === currentlyPlayingIndex}
@@ -69,7 +72,7 @@ export default function VideoFeed() {
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         pagingEnabled
-        snapToInterval={height - insets.top - insets.bottom}
+        snapToInterval={height - tabBarHeight}
         snapToAlignment="start"
         decelerationRate="fast"
         showsVerticalScrollIndicator={false}
