@@ -1,9 +1,7 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
+import React, { useEffect, useRef, useState, useContext, forwardRef, useImperativeHandle } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  Dimensions,
   TouchableWithoutFeedback,
   TouchableOpacity,
   Image,
@@ -13,45 +11,34 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { likeVideo, unlikeVideo } from "../services/api";
-import { AuthContext } from "../App"; // Import AuthContext
+import { AuthContext } from "../App";
+import tw from '../styles/tailwind';
 
-const { width, height } = Dimensions.get("window");
-
-export default function RestaurantVideo({
+const RestaurantVideo = forwardRef(({
   video,
   isInProfile = false,
   isPlaying,
-}) {
+}, ref) => {
   const [isLiked, setIsLiked] = useState(false);
   const videoRef = useRef(null);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { userId } = useContext(AuthContext);
 
-  useEffect(() => {
-    const playVideo = async () => {
-      if (videoRef.current) {
-        if (isPlaying) {
-          await videoRef.current.playAsync();
-        } else {
-          await videoRef.current.stopAsync();
-        }
-      }
-    };
-    playVideo();
-  }, [isPlaying]);
+  useImperativeHandle(ref, () => ({
+    stopAsync: () => videoRef.current?.stopAsync(),
+  }));
 
   useEffect(() => {
-    return () => {
-      if (videoRef.current) {
-        videoRef.current.unloadAsync();
-      }
-    };
-  }, []);
+    if (isPlaying) {
+      videoRef.current?.playAsync();
+    } else {
+      videoRef.current?.stopAsync();
+    }
+  }, [isPlaying]);
 
   const handleLike = async () => {
     if (!userId) {
-      // Prompt user to log in
       navigation.navigate("UserAccount");
       return;
     }
@@ -88,7 +75,7 @@ export default function RestaurantVideo({
 
   return (
     <TouchableWithoutFeedback onPress={togglePlayPause}>
-      <View style={[styles.container, isInProfile && styles.profileContainer]}>
+      <View style={tw`flex-1 bg-black`}>
         <Video
           ref={videoRef}
           source={{ uri: video.url }}
@@ -98,27 +85,16 @@ export default function RestaurantVideo({
           resizeMode="cover"
           shouldPlay={isPlaying}
           isLooping
-          style={styles.video}
+          style={tw`w-full h-full`}
         />
-        <View
-          style={[
-            styles.infoContainer,
-            { bottom: isInProfile ? 20 : insets.bottom + 20 },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={goToRestaurantProfile}
-            style={styles.profileIconContainer}
-          >
-            <Image
-              source={{ uri: video.profileIcon }}
-              style={styles.profileIcon}
-            />
+        <View style={tw`absolute left-2 right-2 bottom-${isInProfile ? '5' : `[${insets.bottom + 20}px]`} p-4`}>
+          <TouchableOpacity onPress={goToRestaurantProfile} style={tw`mb-2`}>
+            <Image source={{ uri: video.profileIcon }} style={tw`w-10 h-10 rounded-full`} />
           </TouchableOpacity>
-          <Text style={styles.restaurantName}>{video.restaurantName}</Text>
-          <Text style={styles.description}>{video.description}</Text>
+          <Text style={tw`text-white text-base font-bold mb-1`}>{video.restaurantName}</Text>
+          <Text style={tw`text-white text-sm`}>{video.description}</Text>
         </View>
-        <TouchableOpacity style={styles.likeButton} onPress={handleLike}>
+        <TouchableOpacity style={tw`absolute right-2 bottom-40`} onPress={handleLike}>
           <Ionicons
             name={isLiked ? "heart" : "heart-outline"}
             size={30}
@@ -128,48 +104,6 @@ export default function RestaurantVideo({
       </View>
     </TouchableWithoutFeedback>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "black",
-  },
-  profileContainer: {
-    height: height - 100,
-  },
-  video: {
-    width: "100%",
-    height: "100%",
-  },
-  infoContainer: {
-    position: "absolute",
-    left: 10,
-    right: 10,
-    bottom: 20,
-    alignItems: "flex-start",
-  },
-  profileIconContainer: {
-    marginBottom: 10,
-  },
-  profileIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  restaurantName: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  description: {
-    color: "white",
-    fontSize: 14,
-  },
-  likeButton: {
-    position: 'absolute',
-    right: 10,
-    bottom: 150,
-  },
 });
+
+export default RestaurantVideo;

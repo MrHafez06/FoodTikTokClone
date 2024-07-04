@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, FlatList, Dimensions, StyleSheet, Text } from "react-native";
+import { View, FlatList, Dimensions } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import RestaurantVideo from "./RestaurantVideo";
 import { fetchRestaurants } from "../services/api";
+import tw from '../styles/tailwind';
 
 const { height, width } = Dimensions.get("window");
 
 export default function VideoFeed() {
   const [allVideos, setAllVideos] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [currentlyPlayingIndex, setCurrentlyPlayingIndex] = useState(0);
   const insets = useSafeAreaInsets();
   const flatListRef = useRef(null);
@@ -23,9 +23,6 @@ export default function VideoFeed() {
       setCurrentlyPlayingIndex(0);
       return () => {
         setCurrentlyPlayingIndex(-1);
-        if (flatListRef.current) {
-          flatListRef.current.scrollToOffset({ offset: 0, animated: false });
-        }
       };
     }, [])
   );
@@ -44,13 +41,11 @@ export default function VideoFeed() {
       setAllVideos(videos);
     } catch (error) {
       console.error("Error loading videos:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const renderItem = ({ item, index }) => (
-    <View style={[styles.videoContainer, { height: height - insets.bottom }]}>
+    <View style={[tw`w-full`, { height: height - insets.top - insets.bottom }]}>
       <RestaurantVideo
         video={item}
         isPlaying={index === currentlyPlayingIndex}
@@ -66,23 +61,15 @@ export default function VideoFeed() {
 
   const viewabilityConfig = { itemVisiblePercentThreshold: 50 };
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.loadingText}>Loading...</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
+    <View style={tw`flex-1 bg-black`}>
       <FlatList
         ref={flatListRef}
         data={allVideos}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         pagingEnabled
-        snapToInterval={height - insets.bottom}
+        snapToInterval={height - insets.top - insets.bottom}
         snapToAlignment="start"
         decelerationRate="fast"
         showsVerticalScrollIndicator={false}
@@ -92,19 +79,3 @@ export default function VideoFeed() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "black",
-  },
-  videoContainer: {
-    width: width,
-  },
-  loadingText: {
-    color: "white",
-    fontSize: 18,
-    textAlign: "center",
-    marginTop: 20,
-  },
-});

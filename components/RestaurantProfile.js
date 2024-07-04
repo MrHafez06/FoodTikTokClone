@@ -1,20 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, FlatList, StyleSheet, SafeAreaView, Dimensions, TouchableOpacity, Linking } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, Image, FlatList, SafeAreaView, Dimensions, TouchableOpacity, Linking } from 'react-native';
 import { fetchRestaurantDetails } from '../services/api';
 import RestaurantVideo from './RestaurantVideo';
 import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import tw from '../styles/tailwind';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
+const THUMBNAIL_SIZE = (width - 40) / 3;
 
 export default function RestaurantProfile({ route, navigation }) {
   const { restaurantId } = route.params;
   const [restaurant, setRestaurant] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     loadRestaurantDetails();
+    stopAllAudio();
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.stopAsync();
+      }
+    };
   }, [restaurantId]);
+
+  const stopAllAudio = async () => {
+    try {
+      await Audio.setIsEnabledAsync(false);
+      await Audio.setIsEnabledAsync(true);
+    } catch (error) {
+      console.error('Error stopping audio:', error);
+    }
+  };
 
   const loadRestaurantDetails = async () => {
     try {
@@ -28,126 +47,70 @@ export default function RestaurantProfile({ route, navigation }) {
   };
 
   const renderVideoThumbnail = ({ item }) => (
-    <TouchableOpacity onPress={() => setSelectedVideo(item)} style={styles.thumbnail}>
+    <TouchableOpacity 
+      onPress={() => setSelectedVideo(item)} 
+      style={tw`w-[${THUMBNAIL_SIZE}px] h-[${THUMBNAIL_SIZE}px] m-1`}
+    >
       <Image 
-        source={{ uri: item.thumbnailUrl + '?quality=100' }} 
-        style={styles.thumbnailImage} 
+        source={{ uri: item.thumbnailUrl }} 
+        style={tw`w-full h-full rounded-lg`} 
       />
     </TouchableOpacity>
   );
 
+  const handleCloseVideo = () => {
+    if (videoRef.current) {
+      videoRef.current.stopAsync();
+    }
+    setSelectedVideo(null);
+  };
+
   if (isLoading) {
-    return <View style={styles.container}><Text style={styles.loadingText}>Loading...</Text></View>;
+    return <View style={tw`flex-1 bg-background justify-center items-center`}><Text style={tw`text-white text-lg`}>Loading...</Text></View>;
   }
 
   if (!restaurant) {
-    return <View style={styles.container}><Text style={styles.errorText}>Restaurant not found</Text></View>;
+    return <View style={tw`flex-1 bg-background justify-center items-center`}><Text style={tw`text-red-500 text-lg`}>Restaurant not found</Text></View>;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={tw`flex-1 bg-background`}>
       {selectedVideo ? (
-        <View style={styles.fullScreenVideo}>
-          <RestaurantVideo video={selectedVideo} isInProfile={true} isPlaying={true} />
-          <TouchableOpacity onPress={() => setSelectedVideo(null)} style={styles.closeButton}>
+        <View style={tw`absolute inset-0 bg-black`}>
+          <RestaurantVideo 
+            ref={videoRef}
+            video={selectedVideo} 
+            isInProfile={true} 
+            isPlaying={true} 
+          />
+          <TouchableOpacity onPress={handleCloseVideo} style={tw`absolute top-10 right-5 bg-black bg-opacity-50 p-2 rounded-full`}>
             <Ionicons name="close" size={30} color="white" />
           </TouchableOpacity>
         </View>
       ) : (
         <>
-          <View style={styles.header}>
-            <Image source={{ uri: restaurant.profileIcon }} style={styles.profileIcon} />
-            <Text style={styles.title}>{restaurant.name}</Text>
+          <View style={tw`flex-row items-center p-5 bg-secondary`}>
+            <Image source={{ uri: restaurant.profileIcon }} style={tw`w-20 h-20 rounded-full mr-5`} />
+            <View>
+              <Text style={tw`text-2xl font-bold text-white`}>{restaurant.name}</Text>
+              <Text style={tw`text-white mt-1`}>{restaurant.description}</Text>
+            </View>
           </View>
           <TouchableOpacity
-            style={styles.orderButton}
+            style={tw`bg-primary p-4 mx-5 my-5 rounded-lg items-center`}
             onPress={() => Linking.openURL('https://example.com/order')}
           >
-            <Text style={styles.orderButtonText}>Order Now</Text>
+            <Text style={tw`text-white text-lg font-bold`}>Order Now</Text>
           </TouchableOpacity>
           <FlatList
             data={restaurant.videos}
             renderItem={renderVideoThumbnail}
             keyExtractor={(item) => item._id}
             numColumns={3}
-            contentContainerStyle={styles.videoGrid}
+            contentContainerStyle={tw`p-2`}
           />
         </>
       )}
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#121212',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#1E1E1E',
-  },
-  profileIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  orderButton: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    margin: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  orderButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  videoGrid: {
-    padding: 5,
-  },
-  thumbnail: {
-    width: (width - 30) / 3,
-    aspectRatio: 9 / 16,
-    margin: 5,
-  },
-  thumbnailImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 10,
-    resizeMode: 'cover',
-  },
-  fullScreenVideo: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'black',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
-    borderRadius: 20,
-  },
-  loadingText: {
-    color: 'white',
-    fontSize: 18,
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 18,
-    textAlign: 'center',
-    marginTop: 20,
-  },
-});

@@ -3,36 +3,46 @@ import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import VideoFeed from './components/VideoFeed';
-import RestaurantDashboard from './components/RestaurantDashboard';
 import RestaurantProfile from './components/RestaurantProfile';
 import UserAccount from './components/UserAccount';
+import tw from './styles/tailwind';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// Create a simple authentication context
 export const AuthContext = React.createContext();
 
 function HomeTabs() {
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: { backgroundColor: 'black' },
-        tabBarActiveTintColor: 'white',
-        tabBarInactiveTintColor: 'gray',
-      }}
+        tabBarStyle: tw`bg-secondary`,
+        tabBarActiveTintColor: tw.color('primary'),
+        tabBarInactiveTintColor: tw.color('gray-500'),
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'NearbyVideos') {
+            iconName = focused ? 'play-circle' : 'play-circle-outline';
+          } else if (route.name === 'UserAccount') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+      })}
     >
       <Tab.Screen name="NearbyVideos" component={VideoFeed} />
-      <Tab.Screen name="RestaurantDashboard" component={RestaurantDashboard} />
       <Tab.Screen name="UserAccount" component={UserAccount} />
     </Tab.Navigator>
   );
 }
 
 export default function App() {
-  const [userId, setUserId] = useState('dummyUserId'); // Replace with actual authentication logic
+  const [userId, setUserId] = useState('dummyUserId');
 
   return (
     <AuthContext.Provider value={{ userId, setUserId }}>
