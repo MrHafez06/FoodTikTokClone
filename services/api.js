@@ -1,38 +1,62 @@
-import axios from "axios";
+import axios from 'axios';
 
-const API_URL = "https://tiktokfoodapp-a36506d95ff8.herokuapp.com/api/restaurants"; // Use this for production
+const API_URL = 'https://tiktokfoodapp-a36506d95ff8.herokuapp.com/api';
 
-console.log("Using API URL:", API_URL);
+const api = axios.create({
+  baseURL: API_URL,
+});
 
-export async function fetchRestaurants() {
-  console.log("Fetching restaurants from:", `${API_URL}`);
+export const login = async (username, password) => {
   try {
-    const response = await axios.get(`${API_URL}`);
-    console.log("Restaurants response:", response.data);
+    const response = await api.post('/auth/login', { username, password });
     return response.data;
   } catch (error) {
-    console.error(
-      "Error fetching restaurants:",
-      error.response ? error.response.data : error.message
-    );
-    throw error;
+    throw error.response?.data || error.message;
   }
-}
+};
 
-export async function fetchRestaurantDetails(id) {
-  console.log(
-    "Fetching restaurant details from:",
-    `${API_URL}/restaurants/${id}`
-  );
+export const register = async (username, email, password) => {
   try {
-    const response = await axios.get(`${API_URL}/${id}`);
-    console.log("Restaurant details response:", response.data);
+    const response = await api.post('/auth/register', { username, email, password });
     return response.data;
   } catch (error) {
-    console.error(
-      "Error fetching restaurant details:",
-      error.response ? error.response.data : error.message
-    );
+    throw error.response?.data || error.message;
+  }
+};
+
+export const fetchRestaurants = async () => {
+  const response = await api.get('/restaurants');
+  return response.data;
+};
+
+export const fetchRestaurantDetails = async (id) => {
+  const response = await api.get(`/restaurants/${id}`);
+  return response.data;
+};
+
+export const likeVideo = async (videoId, userId) => {
+  try {
+    const response = await api.post(`/restaurants/${videoId}/like`, { userId });
+    return response.data;
+  } catch (error) {
+    console.error('Like video error:', error.response?.data || error.message);
     throw error;
   }
-}
+};
+
+export const unlikeVideo = async (videoId, userId) => {
+  try {
+    const response = await api.post(`/restaurants/${videoId}/unlike`, { userId });
+    return response.data;
+  } catch (error) {
+    console.error('Unlike video error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getUserLikedVideos = async (userId) => {
+  const response = await api.get(`/users/${userId}/liked-videos`);
+  return response.data;
+};
+
+export default api;

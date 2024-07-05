@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import VideoFeed from './components/VideoFeed';
 import RestaurantProfile from './components/RestaurantProfile';
 import UserAccount from './components/UserAccount';
+import Auth from './components/Auth';
 import tw from './styles/tailwind';
 
 const Tab = createBottomTabNavigator();
@@ -42,15 +43,21 @@ function HomeTabs() {
 }
 
 export default function App() {
-  const [userId, setUserId] = useState('dummyUserId');
+  const [userId, setUserId] = useState(null);
 
   return (
     <AuthContext.Provider value={{ userId, setUserId }}>
       <StatusBar barStyle="light-content" />
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Home" component={HomeTabs} />
-          <Stack.Screen name="RestaurantProfile" component={RestaurantProfile} />
+          {userId ? (
+            <>
+              <Stack.Screen name="Home" component={HomeTabs} />
+              <Stack.Screen name="RestaurantProfile" component={RestaurantProfile} />
+            </>
+          ) : (
+            <Stack.Screen name="Auth" component={Auth} />
+          )}
         </Stack.Navigator>
       </NavigationContainer>
     </AuthContext.Provider>

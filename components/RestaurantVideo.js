@@ -5,6 +5,7 @@ import {
   TouchableWithoutFeedback,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
 import { Video } from "expo-av";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,18 +40,24 @@ const RestaurantVideo = forwardRef(({
 
   const handleLike = async () => {
     if (!userId) {
-      navigation.navigate("UserAccount");
+      Alert.alert("Login Required", "Please log in to like videos.");
       return;
     }
     try {
       if (isLiked) {
+        console.log('Attempting to unlike video:', video._id);
         await unlikeVideo(video._id, userId);
+        console.log('Video unliked successfully');
       } else {
+        console.log('Attempting to like video:', video._id);
         await likeVideo(video._id, userId);
+        console.log('Video liked successfully');
       }
       setIsLiked(!isLiked);
     } catch (error) {
       console.error("Error liking/unliking video:", error);
+      console.error("Error details:", error.response?.data);
+      Alert.alert("Error", `Failed to ${isLiked ? 'unlike' : 'like'} video. ${error.message}`);
     }
   };
 

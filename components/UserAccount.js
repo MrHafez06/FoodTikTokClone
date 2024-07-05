@@ -13,7 +13,7 @@ import tw from '../styles/tailwind';
 export default function UserAccount({ navigation }) {
   const [likedVideos, setLikedVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { userId } = useContext(AuthContext);
+  const { userId, setUserId } = useContext(AuthContext);
 
   useEffect(() => {
     if (userId) {
@@ -42,6 +42,10 @@ export default function UserAccount({ navigation }) {
     </TouchableOpacity>
   );
 
+  const handleLogout = () => {
+    setUserId(null);  // This will trigger the app to show the Auth screen
+  };
+
   if (isLoading) {
     return (
       <View style={tw`flex-1 bg-background justify-center items-center`}>
@@ -60,6 +64,12 @@ export default function UserAccount({ navigation }) {
         numColumns={2}
         columnWrapperStyle={tw`justify-between`}
       />
+      <TouchableOpacity
+        style={tw`bg-primary p-4 rounded-lg mt-4`}
+        onPress={handleLogout}
+      >
+        <Text style={tw`text-white text-center font-bold`}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 }
