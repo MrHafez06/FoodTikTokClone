@@ -26,6 +26,7 @@ const RestaurantVideo = forwardRef(({
   const navigation = useNavigation();
   const { userId } = useContext(AuthContext);
 
+
   useImperativeHandle(ref, () => ({
     stopAsync: () => videoRef.current?.stopAsync(),
   }));
@@ -44,20 +45,17 @@ const RestaurantVideo = forwardRef(({
       return;
     }
     try {
+      console.log('Attempting to like/unlike video. User ID:', userId, 'Video ID:', video.restaurantId);
       if (isLiked) {
-        console.log('Attempting to unlike video:', video._id);
-        await unlikeVideo(video._id, userId);
-        console.log('Video unliked successfully');
+        await unlikeVideo(video.restaurantId, userId);
       } else {
-        console.log('Attempting to like video:', video._id);
-        await likeVideo(video._id, userId);
-        console.log('Video liked successfully');
+        await likeVideo(video.restaurantId, userId);
       }
       setIsLiked(!isLiked);
+      console.log('Like/unlike successful');
     } catch (error) {
-      console.error("Error liking/unliking video:", error);
-      console.error("Error details:", error.response?.data);
-      Alert.alert("Error", `Failed to ${isLiked ? 'unlike' : 'like'} video. ${error.message}`);
+      console.error("Error liking/unliking video:", error.response?.data || error.message);
+      Alert.alert("Error", `Failed to ${isLiked ? 'unlike' : 'like'} video. Please try again.`);
     }
   };
 
