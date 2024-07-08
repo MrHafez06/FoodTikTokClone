@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import { getUserLikedVideos } from "../services/api";
 import { AuthContext } from "../App";
 import tw from '../styles/tailwind';
@@ -13,7 +7,7 @@ import tw from '../styles/tailwind';
 export default function UserAccount({ navigation }) {
   const [likedVideos, setLikedVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { userId, setUserId } = useContext(AuthContext);
+  const { userId } = useContext(AuthContext);
 
   useEffect(() => {
     if (userId) {
@@ -23,6 +17,7 @@ export default function UserAccount({ navigation }) {
 
   const loadLikedVideos = async () => {
     try {
+      setIsLoading(true);
       const videos = await getUserLikedVideos(userId);
       setLikedVideos(videos);
     } catch (error) {
@@ -42,10 +37,6 @@ export default function UserAccount({ navigation }) {
     </TouchableOpacity>
   );
 
-  const handleLogout = () => {
-    setUserId(null);  // This will trigger the app to show the Auth screen
-  };
-
   if (isLoading) {
     return (
       <View style={tw`flex-1 bg-background justify-center items-center`}>
@@ -60,16 +51,10 @@ export default function UserAccount({ navigation }) {
       <FlatList
         data={likedVideos}
         renderItem={renderVideoItem}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item._id ? item._id.toString() : Math.random().toString()}
         numColumns={2}
         columnWrapperStyle={tw`justify-between`}
       />
-      <TouchableOpacity
-        style={tw`bg-primary p-4 rounded-lg mt-4`}
-        onPress={handleLogout}
-      >
-        <Text style={tw`text-white text-center font-bold`}>Logout</Text>
-      </TouchableOpacity>
     </View>
   );
 }

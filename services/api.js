@@ -55,8 +55,13 @@ export const unlikeVideo = async (videoId, userId) => {
 };
 
 export const getUserLikedVideos = async (userId) => {
-  const response = await api.get(`/users/${userId}/liked-videos`);
-  return response.data;
+  try {
+    const response = await api.get(`/users/${userId}/liked-videos`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching liked videos:', error);
+    throw error;
+  }
 };
 
 export default api;

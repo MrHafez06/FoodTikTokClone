@@ -44,16 +44,21 @@ const RestaurantVideo = forwardRef(({
       Alert.alert("Login Required", "Please log in to like videos.");
       return;
     }
+    
+    // Optimistic update
+    setIsLiked(!isLiked);
+    
     try {
       console.log('Attempting to like/unlike video. User ID:', userId, 'Video ID:', video.restaurantId);
-      if (isLiked) {
-        await unlikeVideo(video.restaurantId, userId);
-      } else {
+      if (!isLiked) {
         await likeVideo(video.restaurantId, userId);
+      } else {
+        await unlikeVideo(video.restaurantId, userId);
       }
-      setIsLiked(!isLiked);
       console.log('Like/unlike successful');
     } catch (error) {
+      // Revert optimistic update on error
+      setIsLiked(!isLiked);
       console.error("Error liking/unliking video:", error.response?.data || error.message);
       Alert.alert("Error", `Failed to ${isLiked ? 'unlike' : 'like'} video. Please try again.`);
     }
